@@ -1,5 +1,6 @@
-Multi-Agent with Tool and Context Management
-The concept is that the whole orchestration is a big for-loop deciding which tool to call. It comprises of an Orchestrator and a ToolNode.OrchestratorThe Orchestrator processes the last message returns to it, which can be either ToolMessage returns from a tool, or a direct injection of HumanMessage/AIMessage through graph invocation. For the release 1, we will only focus on the ToolMessage handling. Here are its main operations:Its state is:Pythonclass MasterAgentState(MessagesState):
+### Multi-Agent with Tool and Context Management
+
+The concept is that the whole orchestration is a big for-loop deciding which tool to call. It comprises of an Orchestrator and a ToolNode.Orchestrator The Orchestrator processes the last message returns to it, which can be either ToolMessage returns from a tool, or a direct injection of HumanMessage/AIMessage through graph invocation. For the release 1, we will only focus on the ToolMessage handling. Here are its main operations:Its state is:Pythonclass MasterAgentState(MessagesState):
     task_stack: List[TaskStruct]
     llm_intent_classifier_blocking: bool # Experiment to allow tools bypassing LLM intent classifier
 
