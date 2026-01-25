@@ -1,5 +1,5 @@
 Streaming protocol in the context of MLFlow ResponseAgent, Langgraph, and Databricks SDK
-Created by: HO, Tam, last updated on: 19 Jan 2026 • 2 minute read
+
 
 Table of Contents
 Overview
@@ -19,7 +19,7 @@ ResponseErrorEvent
 Overview
 Smart Investigator is a multi-agent chatbot that is built using Langgraph, deployed by MLFlow Response Agent, and managed by Databricks Mosaic AI service. Within a conversation, multiple types of events are streamed to the frontend which will result in different behavior on the UI. This document aims to explain the purpose and the sequence of these events.
 
-The structure of all events mentioned in this document can be found at: https://confluence.suncorp.app/confluence/x/3qiiZ
+
 
 Component Interaction
 Within the context of Smart Investigator, we have the following dynamics:
