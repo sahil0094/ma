@@ -2,9 +2,13 @@
 Master Agent Evaluation Profiles
 
 Each profile defines:
-- span_name: The LangGraph node/span to evaluate
+- span_name: (Optional) The LangGraph node/span to evaluate. If omitted, evaluates at trace level.
 - trace_filter: MLflow filter string for trace selection
 - metrics: List of metric IDs to apply
+
+Evaluation Levels:
+- Trace-level: Omit span_name to evaluate entire traces
+- Span-level: Provide span_name to evaluate specific spans (e.g., intent_classifier, tool_node)
 
 Profiles can use trace tags set by the Master Agent:
 - tags.tool_called: Name of tool that was invoked
@@ -14,52 +18,65 @@ Profiles can use trace tags set by the Master Agent:
 """
 
 MASTER_AGENT_PROFILES = {
-    # Profile 1: General conversation quality
-    # Evaluates overall response quality across all successful interactions
-    "general_quality": {
-        "span_name": "intent_classifier",
+    # ============================================
+    # TRACE-LEVEL PROFILES (no span_name)
+    # ============================================
+
+    # End-to-end conversation quality
+    "e2e_quality": {
         "trace_filter": "status = 'SUCCESS'",
-        "metrics": ["response_quality", "tone_compliance", "conversation_coherence"]
+        "metrics": ["conversation_coherence", "task_completion"]
     },
 
-    # Profile 2: Routing analysis (non-HITL tool calls)
-    # Evaluates tool selection decisions and task completion
+    # Full conversation tone analysis
+    "e2e_tone": {
+        "trace_filter": "status = 'SUCCESS'",
+        "metrics": ["tone_compliance"]
+    },
+
+    # Completed workflow trace analysis
+    "workflow_e2e": {
+        "trace_filter": "tags.workflow_finished = 'true'",
+        "metrics": ["task_completion", "conversation_coherence"]
+    },
+
+    # ============================================
+    # SPAN-LEVEL PROFILES (with span_name)
+    # ============================================
+
+    # Intent classifier response quality
+    "ic_quality": {
+        "span_name": "intent_classifier",
+        "trace_filter": "status = 'SUCCESS'",
+        "metrics": ["response_quality", "tone_compliance"]
+    },
+
+    # Routing analysis (non-HITL tool calls)
     "routing_analysis": {
         "span_name": "tool_node",
         "trace_filter": "status = 'SUCCESS' AND tags.is_hitl = 'false'",
-        "metrics": ["routing_plausibility", "task_completion"]
+        "metrics": ["routing_plausibility"]
     },
 
-    # Profile 3: Error case analysis
-    # Evaluates conversations that resulted in errors
+    # Error case analysis
     "error_analysis": {
         "span_name": "intent_classifier",
         "trace_filter": "status = 'ERROR'",
         "metrics": ["conversation_coherence"]
     },
 
-    # Profile 4: HITL interaction analysis
-    # Evaluates human-in-the-loop interactions specifically
+    # HITL interaction analysis
     "hitl_analysis": {
         "span_name": "tool_node",
         "trace_filter": "tags.is_hitl = 'true'",
-        "metrics": ["response_quality", "task_completion"]
+        "metrics": ["response_quality"]
     },
 
-    # Profile 5: Workflow completion analysis
-    # Evaluates conversations where a workflow completed
-    "workflow_completion": {
-        "span_name": "intent_classifier",
-        "trace_filter": "tags.workflow_finished = 'true'",
-        "metrics": ["task_completion", "conversation_coherence"]
-    },
-
-    # Profile 6: Workflow in-progress analysis
-    # Evaluates ongoing workflow interactions
+    # Workflow in-progress span analysis
     "workflow_in_progress": {
         "span_name": "intent_classifier",
         "trace_filter": "tags.workflow_name != '' AND tags.workflow_finished = 'false'",
-        "metrics": ["response_quality", "conversation_coherence"]
+        "metrics": ["response_quality"]
     },
 }
 
