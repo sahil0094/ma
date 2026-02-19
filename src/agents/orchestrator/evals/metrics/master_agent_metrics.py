@@ -66,7 +66,6 @@ Output:
     - 1: Incoherent or contradictory responses
 """
 
-# Template with placeholder for tool descriptions (injected at runtime)
 ROUTING_PLAUSIBILITY_GUIDELINES = """
 You are an expert judge evaluating if the Master Agent's tool/agent routing
 decision was plausible given the user's request.
