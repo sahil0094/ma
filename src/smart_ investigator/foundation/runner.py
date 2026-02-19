@@ -16,9 +16,13 @@ def run_profile(
     """
     Run evaluation for a single profile.
 
+    Supports both trace-level and span-level evaluation:
+    - If span_name is provided: evaluates specific spans within traces
+    - If span_name is omitted: evaluates at trace level directly
+
     Args:
         profile: Profile configuration with keys:
-            - span_name: Name of the span to evaluate
+            - span_name: (Optional) Name of the span to evaluate. If omitted, evaluates traces.
             - trace_filter: MLflow filter string for traces
             - metrics: List of metric IDs to evaluate
         experiment_id: MLflow experiment ID containing traces
@@ -38,14 +42,19 @@ def run_profile(
     if len(traces_df) > limit:
         traces_df = traces_df.head(limit)
 
-    trace_ids = traces_df["trace_id"].tolist()
-    spans_df = TraceRetriever.get_spans_by_name(
-        trace_ids, span_name=profile["span_name"]
-    )
+    span_name = profile.get("span_name")
+
+    if span_name:
+        # Span-level evaluation: extract specific spans
+        trace_ids = traces_df["trace_id"].tolist()
+        eval_df = TraceRetriever.get_spans_by_name(trace_ids, span_name=span_name)
+    else:
+        # Trace-level evaluation: use traces directly
+        eval_df = traces_df
 
     scorers = MetricRegistry.build_judges(profile["metrics"], model=model)
 
-    return mlflow.genai.evaluate(data=spans_df, scorers=scorers)
+    return mlflow.genai.evaluate(data=eval_df, scorers=scorers)
 
 
 def run_evaluation(
