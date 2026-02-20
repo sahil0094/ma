@@ -90,6 +90,67 @@ Output:
     - "No": User request not fulfilled
 """
 
+# ========== Session-Level Metrics ==========
+
+SESSION_GOAL_ACHIEVEMENT_GUIDELINES = """
+You are evaluating whether the user achieved their goal across a multi-turn conversation.
+
+You will receive the full session as a series of request-response exchanges.
+
+Indicators of goal achievement:
+- User's initial request was fulfilled by the end
+- User received actionable information or completed their task
+- Session ended naturally (not abandoned)
+
+Indicators of non-achievement:
+- User abandoned the session mid-task
+- Initial goal was never addressed
+- Session ended with unresolved issues
+
+Output:
+- "Yes": Goal was achieved
+- "Partial": Progress made but not fully resolved
+- "No": Goal not achieved
+"""
+
+CROSS_TURN_COHERENCE_GUIDELINES = """
+You are evaluating context coherence across multiple turns in a session.
+
+Criteria:
+1. Information from earlier turns is correctly referenced
+2. No contradictions between turns
+3. Agent doesn't ask for information already provided
+4. Context flows logically
+
+Score (1-4):
+- 4: Perfect coherence, all context maintained
+- 3: Minor context gaps
+- 2: Some contradictions or repeated questions
+- 1: Significant coherence failures
+"""
+
+# ========== Tool-Level Metrics ==========
+
+TOOL_OUTPUT_UTILIZATION_GUIDELINES = """
+You are evaluating whether the agent's response effectively uses the tool output.
+
+Given the trace data which includes:
+- User's request
+- Tool(s) called and their outputs
+- Agent's final response
+
+Criteria:
+1. Response incorporates relevant information from tool output
+2. Tool output is not ignored or contradicted
+3. Information is accurately conveyed
+
+Score (1-4):
+- 4: Excellent utilization of tool output
+- 3: Good utilization with minor omissions
+- 2: Partial utilization
+- 1: Poor utilization, tool output ignored
+"""
+
 
 def register_master_agent_metrics(tool_descriptions: str = ""):
     """
@@ -132,5 +193,28 @@ def register_master_agent_metrics(tool_descriptions: str = ""):
         metric_id="task_completion",
         guidelines=TASK_COMPLETION_GUIDELINES,
         value_type=str,  # Returns "Yes", "Partial", or "No"
+        judge_type="input_output"
+    )
+
+    # Session-level metrics
+    MetricRegistry.register(
+        metric_id="session_goal_achievement",
+        guidelines=SESSION_GOAL_ACHIEVEMENT_GUIDELINES,
+        value_type=str,  # Returns "Yes", "Partial", or "No"
+        judge_type="input_output"  # Uses aggregated session as input
+    )
+
+    MetricRegistry.register(
+        metric_id="cross_turn_coherence",
+        guidelines=CROSS_TURN_COHERENCE_GUIDELINES,
+        value_type=int,  # Returns 1-4
+        judge_type="input_output"
+    )
+
+    # Tool-level metrics
+    MetricRegistry.register(
+        metric_id="tool_output_utilization",
+        guidelines=TOOL_OUTPUT_UTILIZATION_GUIDELINES,
+        value_type=int,  # Returns 1-4
         judge_type="input_output"
     )
