@@ -1,4 +1,5 @@
 import mlflow
+import pandas as pd
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 
@@ -110,3 +111,69 @@ def run_evaluation(
             all_results[profile_name] = result
 
     return all_results
+
+
+def run_session_evaluation(
+    agent_name: str,
+    profile: Dict,
+    experiment_id: str,
+    recent_hours: int,
+    model: str = "azure:/gpt-4o",
+    limit: int = 20,
+) -> Any:
+    """
+    Run session-level evaluation.
+
+    Groups traces by session, aggregates into conversations,
+    then evaluates each session as a single unit.
+
+    Args:
+        agent_name: Name of the agent being evaluated
+        profile: Profile configuration with:
+            - metrics: List of session-level metric IDs
+        experiment_id: MLflow experiment ID containing traces
+        recent_hours: Time window in hours for trace retrieval
+        model: LLM model to use for judge evaluation
+        limit: Maximum number of sessions to evaluate
+
+    Returns:
+        MLflow evaluation result object
+    """
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+
+    sessions = TraceRetriever.get_recent_sessions(
+        hours=recent_hours,
+        experiment_ids=[experiment_id],
+        min_traces=2
+    )
+
+    if not sessions:
+        print("No sessions found with multiple traces")
+        return None
+
+    if len(sessions) > limit:
+        sessions = dict(list(sessions.items())[:limit])
+
+    # Build evaluation data: one row per session
+    eval_data = []
+    for session_id, session_traces in sessions.items():
+        conversation = TraceRetriever.build_session_conversation(session_traces)
+        eval_data.append({
+            "session_id": session_id,
+            "inputs": conversation,  # Full session as input
+            "outputs": "",  # Not used for session eval
+            "trace_count": len(session_traces),
+        })
+
+    eval_df = pd.DataFrame(eval_data)
+    scorers = MetricRegistry.build_judges(profile["metrics"], model=model)
+
+    run_name = f"{agent_name}_session_{timestamp}"
+
+    with mlflow.start_run(run_name=run_name):
+        mlflow.set_tag("agent_name", agent_name)
+        mlflow.set_tag("eval_type", "session")
+        mlflow.set_tag("profile_name", "session_quality")
+        mlflow.set_tag("session_count", len(sessions))
+
+        return mlflow.genai.evaluate(data=eval_df, scorers=scorers)
