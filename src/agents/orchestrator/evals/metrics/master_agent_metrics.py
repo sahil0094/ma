@@ -2,29 +2,7 @@
 Master Agent specific evaluation metrics.
 
 These metrics are tailored for evaluating the Master Agent's performance,
-including routing decisions, response quality with insurance domain context,
-and task completion tracking.
-"""
-
-# Override base response_quality with master agent specific context
-RESPONSE_QUALITY_GUIDELINES = """
-You are an expert judge evaluating the quality of the Master Agent's response
-in an insurance claims processing context.
-
-Your task is to evaluate the response based on the following criteria:
-
-1. **Helpfulness**: Does the response address the user's question or request?
-2. **Clarity**: Is the response clear and easy to understand?
-3. **Conciseness**: Is the response appropriately concise without being incomplete?
-4. **Actionability**: Does it provide actionable next steps if applicable?
-5. **Domain Appropriateness**: Is the response appropriate for insurance/claims context?
-
-Output:
-- Return a score from 1 to 4 based on the following scale:
-    - 4: Excellent - Fully addresses user need, clear, concise, and actionable
-    - 3: Good - Mostly addresses user need with minor issues
-    - 2: Fair - Partially addresses user need or has clarity issues
-    - 1: Poor - Does not address user need or is confusing
+including tone compliance, conversation coherence, and task completion tracking.
 """
 
 TONE_COMPLIANCE_GUIDELINES = """
@@ -124,13 +102,6 @@ def register_master_agent_metrics(tool_descriptions: str = ""):
     Call this function before running evaluation to make metrics available.
     """
     from smart_investigator.foundation.evals.offline.registry.metric_registry import MetricRegistry
-
-    MetricRegistry.register(
-        metric_id="response_quality",
-        guidelines=RESPONSE_QUALITY_GUIDELINES,
-        value_type=int,
-        judge_type="input_output"
-    )
 
     MetricRegistry.register(
         metric_id="tone_compliance",
