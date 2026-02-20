@@ -69,6 +69,9 @@ def run_evaluation(
     """
     Run evaluation across multiple profiles for an agent.
 
+    Creates flat MLflow runs (one per profile) with naming:
+    {agent_name}_{profile_name}_{timestamp}
+
     Args:
         agent_name: Name of the agent being evaluated (e.g., "master_agent")
         profiles: Dictionary of profile configurations
@@ -81,7 +84,7 @@ def run_evaluation(
     Returns:
         Dictionary mapping profile names to their evaluation results
     """
-    run_name = f"{agent_name}_eval_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 
     # Filter profiles if specific ones requested
     if run_profiles:
@@ -89,22 +92,21 @@ def run_evaluation(
 
     all_results = {}
 
-    with mlflow.start_run(run_name=run_name):
-        mlflow.set_tag("agent_name", agent_name)
-        mlflow.set_tag("eval_type", "offline")
+    for profile_name, profile in profiles.items():
+        run_name = f"{agent_name}_{profile_name}_{timestamp}"
 
-        for profile_name, profile in profiles.items():
-            with mlflow.start_run(run_name=profile_name, nested=True):
-                mlflow.set_tag("profile_name", profile_name)
-                mlflow.set_tag("agent_name", agent_name)
+        with mlflow.start_run(run_name=run_name):
+            mlflow.set_tag("agent_name", agent_name)
+            mlflow.set_tag("profile_name", profile_name)
+            mlflow.set_tag("eval_type", "offline")
 
-                result = run_profile(
-                    profile=profile,
-                    experiment_id=experiment_id,
-                    recent_hours=recent_hours,
-                    model=model,
-                    limit=limit
-                )
-                all_results[profile_name] = result
+            result = run_profile(
+                profile=profile,
+                experiment_id=experiment_id,
+                recent_hours=recent_hours,
+                model=model,
+                limit=limit
+            )
+            all_results[profile_name] = result
 
     return all_results
