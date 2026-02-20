@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Optional, List
+from typing import Optional, List, Dict
 import pandas as pd
 import mlflow
 
@@ -119,3 +119,146 @@ class TraceRetriever:
                         })
 
         return pd.DataFrame(spans_data)
+
+    # ========== Session-Level Methods ==========
+
+    @staticmethod
+    def get_session_traces(
+        session_id: str,
+        experiment_ids: Optional[List[str]] = None
+    ) -> pd.DataFrame:
+        """Get all traces for a specific session, ordered by timestamp."""
+        filter_string = f"attributes.`mlflow.trace.session` = '{session_id}'"
+        return mlflow.search_traces(
+            experiment_ids=experiment_ids,
+            filter_string=filter_string,
+            order_by=["attributes.timestamp_ms ASC"]
+        )
+
+    @staticmethod
+    def get_recent_sessions(
+        hours: int = 24,
+        experiment_ids: Optional[List[str]] = None,
+        min_traces: int = 2
+    ) -> Dict[str, pd.DataFrame]:
+        """
+        Get traces grouped by session_id.
+
+        Args:
+            hours: Time window in hours
+            experiment_ids: MLflow experiment IDs to search
+            min_traces: Minimum traces per session (filters out single-trace sessions)
+
+        Returns:
+            Dictionary mapping session_id to DataFrame of traces in that session
+        """
+        traces = TraceRetriever.get_recent_traces(
+            hours=hours,
+            experiment_ids=experiment_ids
+        )
+
+        if traces.empty:
+            return {}
+
+        sessions = {}
+
+        # Try to find the session column (may vary based on MLflow version)
+        session_col = None
+        for col in traces.columns:
+            if "mlflow.trace.session" in col:
+                session_col = col
+                break
+
+        if session_col and session_col in traces.columns:
+            for session_id, group in traces.groupby(session_col):
+                if session_id and len(group) >= min_traces:
+                    sessions[session_id] = group.sort_values("timestamp")
+
+        return sessions
+
+    @staticmethod
+    def build_session_conversation(session_traces: pd.DataFrame) -> str:
+        """
+        Build aggregated conversation from multiple traces for session-level eval.
+
+        Args:
+            session_traces: DataFrame of traces in a session, ordered by timestamp
+
+        Returns:
+            Formatted conversation string with all request-response pairs
+        """
+        conversation_parts = []
+
+        for _, trace in session_traces.iterrows():
+            inputs = trace.get("inputs", "") or ""
+            outputs = trace.get("outputs", "") or ""
+            conversation_parts.append(f"User: {inputs}\nAgent: {outputs}")
+
+        return "\n\n".join(conversation_parts)
+
+    # ========== Tool Span Methods ==========
+
+    @staticmethod
+    def get_tool_spans(trace_id: str) -> List[dict]:
+        """
+        Extract TOOL spans from a trace.
+
+        Args:
+            trace_id: MLflow trace ID
+
+        Returns:
+            List of tool span dictionaries with name, inputs, outputs, status
+        """
+        client = mlflow.MlflowClient()
+        trace = client.get_trace(trace_id)
+
+        tool_spans = []
+        if trace and trace.data and trace.data.spans:
+            for span in trace.data.spans:
+                span_type = getattr(span, "span_type", None)
+                if span_type == "TOOL":
+                    tool_spans.append({
+                        "span_id": span.span_id,
+                        "name": span.name,
+                        "inputs": span.inputs,
+                        "outputs": span.outputs,
+                        "status": span.status,
+                    })
+        return tool_spans
+
+    @staticmethod
+    def get_traces_with_tool_context(
+        hours: int = 24,
+        experiment_ids: Optional[List[str]] = None,
+        filter_string: Optional[str] = None
+    ) -> pd.DataFrame:
+        """
+        Get traces enriched with TOOL span data.
+
+        Args:
+            hours: Time window in hours
+            experiment_ids: MLflow experiment IDs to search
+            filter_string: Additional filter string
+
+        Returns:
+            DataFrame with additional columns: tool_spans, tool_names
+        """
+        traces = TraceRetriever.get_recent_traces(
+            hours=hours,
+            experiment_ids=experiment_ids,
+            filter_string=filter_string
+        )
+
+        if traces.empty:
+            return traces
+
+        # Enrich with tool span data
+        enriched = []
+        for _, trace in traces.iterrows():
+            tool_spans = TraceRetriever.get_tool_spans(trace["trace_id"])
+            trace_dict = trace.to_dict()
+            trace_dict["tool_spans"] = tool_spans
+            trace_dict["tool_names"] = [s["name"] for s in tool_spans]
+            enriched.append(trace_dict)
+
+        return pd.DataFrame(enriched)
