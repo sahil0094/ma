@@ -4,25 +4,37 @@ Master Agent Evaluation Profiles
 Each profile defines:
 - trace_filter: MLflow filter string for trace selection
 - metrics: List of metric IDs to apply
+- aggregation: (Optional) "session" for session-level evaluation
 
-Profiles can use trace tags set by the Master Agent:
+Profiles can use trace tags and metadata set by the Master Agent:
+
+Tags:
 - tags.tool_called: Name of tool that was invoked
 - tags.is_hitl: "true" or "false"
 - tags.workflow_name: Active workflow name
 - tags.workflow_finished: "true" or "false"
+
+Metadata:
+- attributes.mlflow.trace.session: Session ID for grouping traces
 """
 
 MASTER_AGENT_PROFILES = {
-    # General quality evaluation on successful traces
-    "general_quality": {
+    # Trace-level quality evaluation (tone, coherence, task completion)
+    "quality": {
         "trace_filter": "status = 'OK'",
-        "metrics": ["tone_compliance", "conversation_coherence"]
+        "metrics": ["tone_compliance", "conversation_coherence", "task_completion"]
     },
 
-    # Task completion evaluation
-    "task_completion": {
+    # Routing quality with tool analysis
+    "routing": {
         "trace_filter": "status = 'OK'",
-        "metrics": ["task_completion"]
+        "metrics": ["routing_plausibility", "tool_output_utilization"]
+    },
+
+    # Session-level quality (requires session aggregation)
+    "session_quality": {
+        "aggregation": "session",  # Indicates session-level evaluation
+        "metrics": ["session_goal_achievement", "cross_turn_coherence"]
     },
 
     # Error trace analysis
