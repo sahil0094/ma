@@ -61,23 +61,22 @@ def create_tool_call_judge(
     Rubric-following tool call/routing judge.
 
     Evaluates tool selection decisions specifically.
-    Use for metrics like routing_plausibility.
+    Use for metrics like routing_plausibility, error_root_cause.
 
-    Expected template variables:
-    - inputs: User's message/request
-    - available_tools: Description of available tools
-    - selected_tool: The tool that was selected
-    - tool_arguments: Arguments passed to the tool
+    Expects inputs to contain embedded tool context:
+    {
+        "request": <original user request>,
+        "tools_called": [<list of tool names>],
+        "tool_details": [<list of tool span dicts with name, inputs, outputs, status>]
+    }
     """
     return make_judge(
         name=name,
         instructions=(
             f"{guidelines}\n\n"
-            f"Evaluate the {name} based on the tool selection:\n"
-            "User Input: {{inputs}}\n"
-            "Available Tools:\n{{available_tools}}\n"
-            "Selected Tool: {{selected_tool}}\n"
-            "Tool Arguments: {{tool_arguments}}"
+            f"Evaluate the {name} based on the following:\n\n"
+            "Input Context (contains request, tools_called, and tool_details): {{ inputs }}\n\n"
+            "Agent Response: {{ outputs }}"
         ),
         feedback_value_type=feedback_value_type,
         model=model
