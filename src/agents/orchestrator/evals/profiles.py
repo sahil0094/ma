@@ -9,13 +9,13 @@ Each profile defines:
 Profiles can use trace tags and metadata set by the Master Agent:
 
 Tags:
-- tags.tool_called: Name of tool that was invoked
-- tags.is_hitl: "true" or "false"
 - tags.workflow_name: Active workflow name
 - tags.workflow_finished: "true" or "false"
 
 Metadata:
 - attributes.mlflow.trace.session: Session ID for grouping traces
+
+Note: Tool calls are captured in TOOL spans by MLflow autolog, not in tags.
 """
 
 MASTER_AGENT_PROFILES = {
@@ -37,10 +37,10 @@ MASTER_AGENT_PROFILES = {
         "metrics": ["session_goal_achievement", "cross_turn_coherence"]
     },
 
-    # Error trace analysis
+    # Error trace analysis for debugging
     "error_analysis": {
         "trace_filter": "status = 'ERROR'",
-        "metrics": ["conversation_coherence"]
+        "metrics": ["error_root_cause"]
     },
 }
 
