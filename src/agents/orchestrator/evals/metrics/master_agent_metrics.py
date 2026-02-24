@@ -129,6 +129,37 @@ Score (1-4):
 - 1: Significant coherence failures
 """
 
+# ========== Error Analysis Metrics ==========
+
+ERROR_ROOT_CAUSE_GUIDELINES = """
+You are a debugging expert analyzing a failed agent trace to identify the root cause.
+
+You will receive the full trace including inputs, outputs, tool calls, and error information.
+
+Classify the root cause into ONE of these categories:
+
+1. **LLM_ERROR**: LLM produced invalid output, hallucinated, or failed to follow instructions
+2. **TOOL_ERROR**: A tool/external service failed (timeout, API error, invalid response)
+3. **INPUT_VALIDATION**: User input was malformed, missing required fields, or invalid
+4. **ROUTING_ERROR**: Wrong tool selected for the user's intent
+5. **STATE_ERROR**: Conversation state corruption, missing context, or invalid state transition
+6. **TIMEOUT**: Operation exceeded time limits
+7. **AUTH_ERROR**: Authentication or authorization failure
+8. **UNKNOWN**: Cannot determine root cause from available information
+
+For each classification, also identify:
+- The specific component that failed (if identifiable)
+- Whether the error was recoverable
+
+Output format (return exactly this structure):
+{
+    "category": "<one of the categories above>",
+    "component": "<specific component that failed, or 'unknown'>",
+    "recoverable": "<yes/no/unclear>",
+    "summary": "<one sentence description of what went wrong>"
+}
+"""
+
 # ========== Tool-Level Metrics ==========
 
 TOOL_OUTPUT_UTILIZATION_GUIDELINES = """
@@ -217,4 +248,12 @@ def register_master_agent_metrics(tool_descriptions: str = ""):
         guidelines=TOOL_OUTPUT_UTILIZATION_GUIDELINES,
         value_type=int,  # Returns 1-4
         judge_type="input_output"
+    )
+
+    # Error analysis metrics
+    MetricRegistry.register(
+        metric_id="error_root_cause",
+        guidelines=ERROR_ROOT_CAUSE_GUIDELINES,
+        value_type=str,  # Returns JSON structure
+        judge_type="tool_call"  # Uses full trace context
     )
