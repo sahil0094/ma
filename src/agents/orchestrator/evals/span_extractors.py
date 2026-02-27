@@ -85,7 +85,7 @@ def get_tone_spans(
     Extract MasterAgent responses from human_in_the_loop spans for tone evaluation.
 
     Extracts text from Interrupt exceptions where sender == 'MasterAgent'.
-    Uses span.events[0].attributes to access exception.message and sender.
+    Sender and text are both extracted from the exception.message string.
 
     Args:
         hours: Time window in hours
@@ -126,14 +126,14 @@ def get_tone_spans(
             if not attributes:
                 continue
 
-            # Check sender - only evaluate MasterAgent responses
-            sender = attributes.get("sender", "")
-            if sender != "MasterAgent":
-                continue
-
             # Get exception message containing the Interrupt
             exception_message = attributes.get("exception.message", "")
             if not exception_message or "Interrupt" not in exception_message:
+                continue
+
+            # Extract sender from interrupt string - only evaluate MasterAgent responses
+            sender = _extract_interrupt_sender(exception_message)
+            if sender != "MasterAgent":
                 continue
 
             # Extract text from interrupt string
@@ -148,6 +148,25 @@ def get_tone_spans(
                 })
 
     return pd.DataFrame(tone_data)
+
+
+def _extract_interrupt_sender(message: str) -> Optional[str]:
+    """
+    Extract sender from Interrupt exception message string.
+
+    Looks for 'sender': 'value' pattern in custom_outputs.
+
+    Args:
+        message: The exception message string containing Interrupt
+
+    Returns:
+        Extracted sender or None if not found
+    """
+    # Pattern: 'sender': 'MasterAgent' or "sender": "MasterAgent"
+    match = re.search(r"['\"]sender['\"]:\s*['\"]([^'\"]+)['\"]", message)
+    if match:
+        return match.group(1)
+    return None
 
 
 def _extract_interrupt_text(message: str) -> Optional[str]:
