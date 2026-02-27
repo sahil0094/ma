@@ -85,6 +85,7 @@ def get_tone_spans(
     Extract MasterAgent responses from human_in_the_loop spans for tone evaluation.
 
     Extracts text from Interrupt exceptions where sender == 'MasterAgent'.
+    Uses span.events[0].attributes to access exception.message and sender.
 
     Args:
         hours: Time window in hours
@@ -115,44 +116,43 @@ def get_tone_spans(
             if span.name != "human_in_the_loop":
                 continue
 
-            # Extract from events (exception path)
+            # Check if span has events
             events = getattr(span, "events", None)
-            if not events:
+            if not events or len(events) == 0:
                 continue
 
-            for event in events:
-                # Look for exception event
-                exception = getattr(event, "exception", None)
-                if not exception:
-                    continue
+            # Get attributes from first event
+            attributes = getattr(events[0], "attributes", {})
+            if not attributes:
+                continue
 
-                message = getattr(exception, "message", "")
-                if not message or "Interrupt" not in message:
-                    continue
+            # Check sender - only evaluate MasterAgent responses
+            sender = attributes.get("sender", "")
+            if sender != "MasterAgent":
+                continue
 
-                # Check for MasterAgent sender
-                if "'sender': 'MasterAgent'" not in message:
-                    continue
+            # Get exception message containing the Interrupt
+            exception_message = attributes.get("exception.message", "")
+            if not exception_message or "Interrupt" not in exception_message:
+                continue
 
-                # Try to extract text - first try direct object access
-                agent_text = _extract_interrupt_text(message)
+            # Extract text from interrupt string
+            agent_text = _extract_interrupt_text(exception_message)
 
-                if agent_text:
-                    tone_data.append({
-                        "trace_id": trace_row["trace_id"],
-                        "span_id": span.span_id,
-                        "inputs": span.inputs,
-                        "outputs": agent_text,
-                    })
+            if agent_text:
+                tone_data.append({
+                    "trace_id": trace_row["trace_id"],
+                    "span_id": span.span_id,
+                    "inputs": span.inputs,
+                    "outputs": agent_text,
+                })
 
     return pd.DataFrame(tone_data)
 
 
 def _extract_interrupt_text(message: str) -> Optional[str]:
     """
-    Extract text from Interrupt exception message.
-
-    Tries multiple patterns to extract the text field from the Interrupt structure.
+    Extract text from Interrupt exception message string.
 
     Args:
         message: The exception message string containing Interrupt
@@ -160,24 +160,16 @@ def _extract_interrupt_text(message: str) -> Optional[str]:
     Returns:
         Extracted text or None if not found
     """
-    # Pattern 1: text='...' with possible escaped quotes
-    match = re.search(r"text='((?:[^'\\]|\\.)*)'", message)
-    if match:
-        text = match.group(1)
-        # Unescape escaped quotes
-        text = text.replace("\\'", "'").replace("\\n", "\n")
-        return text
-
-    # Pattern 2: text="..."
+    # Pattern 1: text="..." (double quotes - most common)
     match = re.search(r'text="((?:[^"\\]|\\.)*)"', message)
     if match:
         text = match.group(1)
-        text = text.replace('\\"', '"').replace("\\n", "\n")
-        return text
+        return text.replace('\\"', '"').replace("\\n", "\n")
 
-    # Pattern 3: Fallback - find text between text= and , custom_outputs
-    match = re.search(r"text=['\"](.+?)['\"],\s*custom_outputs", message, re.DOTALL)
+    # Pattern 2: text='...' (single quotes)
+    match = re.search(r"text='((?:[^'\\]|\\.)*)'", message)
     if match:
-        return match.group(1)
+        text = match.group(1)
+        return text.replace("\\'", "'").replace("\\n", "\n")
 
     return None
