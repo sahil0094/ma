@@ -8,7 +8,6 @@ import json
 
 import pandas as pd
 from pyspark.sql import SparkSession
-from delta.tables import DeltaTable
 
 
 def export_to_delta(
@@ -97,17 +96,22 @@ def export_to_delta(
 
     try:
         spark.sql(f"DESCRIBE TABLE {full_table_name}")
-        delta_table = DeltaTable.forName(spark, full_table_name)
-        delta_table.alias("target").merge(
-            source_df.alias("source"),
-            "target.trace_id = source.trace_id AND target.metric_name = source.metric_name"
-        ).whenMatchedUpdateAll().whenNotMatchedInsertAll().execute()
+        table_exists = True
+    except Exception:
+        table_exists = False
+
+    if not table_exists:
+        source_df.write.format("delta").mode("overwrite").saveAsTable(full_table_name)
+        print(f"Export successful: {len(records)} records written to new table {full_table_name}")
+    else:
+        # Use SQL MERGE
+        source_df.createOrReplaceTempView("source_eval_results")
+        merge_sql = f"""
+            MERGE INTO {full_table_name} AS target
+            USING source_eval_results AS source
+            ON target.trace_id = source.trace_id AND target.metric_name = source.metric_name
+            WHEN MATCHED THEN UPDATE SET *
+            WHEN NOT MATCHED THEN INSERT *
+        """
+        spark.sql(merge_sql)
         print(f"Export successful: {len(records)} records merged to {full_table_name}")
-    except Exception as e:
-        if "Table or view not found" in str(e) or "DESCRIBE TABLE" in str(e):
-            source_df.write.format("delta").mode(
-                "overwrite").saveAsTable(full_table_name)
-            print(f"Export successful: {len(records)} records written to new table {full_table_name}")
-        else:
-            print(f"Export failed: {e}")
-            raise
