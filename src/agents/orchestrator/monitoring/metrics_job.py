@@ -22,10 +22,14 @@ Schedule: Daily at 2 AM UTC (0 2 * * *)
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional, Tuple
-from decimal import Decimal
+from zoneinfo import ZoneInfo
 import logging
 import time
 import uuid
+
+
+# Brisbane timezone (AEST, UTC+10)
+BRISBANE_TZ = ZoneInfo("Australia/Brisbane")
 
 import mlflow
 import pandas as pd
@@ -37,7 +41,7 @@ from pyspark.sql.types import (
     IntegerType,
     LongType,
     TimestampType,
-    DecimalType,
+    DoubleType,
     DateType,
 )
 from pyspark.sql.functions import lit, col
@@ -46,12 +50,8 @@ from delta.tables import DeltaTable
 from smart_investigator.foundation.monitoring.trace_metrics_extractor import (
     TraceMetricsExtractor,
     TraceMetrics,
-    AgentPricingConfig,
 )
-from agents.orchestrator.monitoring.config import (
-    MASTER_AGENT_PRICING,
-    MonitoringConfig,
-)
+from agents.orchestrator.monitoring.config import MonitoringConfig
 
 
 logger = logging.getLogger(__name__)
@@ -65,7 +65,6 @@ METRICS_SCHEMA = StructType([
     # Identifiers
     StructField("trace_id", StringType(), False),
     StructField("experiment_id", StringType(), True),
-    StructField("agent_name", StringType(), True),
     # Timestamps
     StructField("trace_timestamp", TimestampType(), False),
     # Token Metrics
@@ -73,14 +72,13 @@ METRICS_SCHEMA = StructType([
     StructField("output_tokens", IntegerType(), True),
     StructField("reasoning_tokens", IntegerType(), True),
     StructField("total_tokens", IntegerType(), True),
-    # Cost (USD)
-    StructField("input_cost_usd", DecimalType(10, 6), True),
-    StructField("output_cost_usd", DecimalType(10, 6), True),
-    StructField("reasoning_cost_usd", DecimalType(10, 6), True),
-    StructField("total_cost_usd", DecimalType(10, 6), True),
+    # Cost (AUD)
+    StructField("input_cost_aud", DoubleType(), True),
+    StructField("output_cost_aud", DoubleType(), True),
+    StructField("reasoning_cost_aud", DoubleType(), True),
+    StructField("total_cost_aud", DoubleType(), True),
     # Timing (ms)
     StructField("total_duration_ms", LongType(), True),
-    StructField("llm_duration_ms", LongType(), True),
     # Status
     StructField("status", StringType(), True),
     StructField("error_message", StringType(), True),
@@ -151,21 +149,18 @@ class MasterAgentMetricsJob:
     def __init__(
         self,
         config: MonitoringConfig,
-        pricing_config: AgentPricingConfig = MASTER_AGENT_PRICING,
         spark: Optional[SparkSession] = None,
     ):
         """
         Initialize the metrics job.
 
         Args:
-            config: Monitoring configuration
-            pricing_config: Pricing configuration for cost calculation
+            config: Monitoring configuration (includes pricing)
             spark: SparkSession (creates one if not provided)
         """
         self.config = config
-        self.pricing_config = pricing_config
         self.spark = spark or SparkSession.builder.getOrCreate()
-        self.extractor = TraceMetricsExtractor(pricing_config)
+        self.extractor = TraceMetricsExtractor(config.pricing_config)
         self.job_run_id = str(uuid.uuid4())
 
     def run(self) -> JobResult:
@@ -270,7 +265,7 @@ class MasterAgentMetricsJob:
         all_records = []
         all_failed = []
         client = mlflow.MlflowClient()
-        extracted_at = datetime.now()
+        extracted_at = datetime.now(BRISBANE_TZ)
 
         total_traces = len(traces_df)
         batch_size = self.config.batch_size
@@ -351,7 +346,7 @@ class MasterAgentMetricsJob:
 
         # Convert Decimal to float for Spark compatibility
         for record in records:
-            for key in ["input_cost_usd", "output_cost_usd", "reasoning_cost_usd", "total_cost_usd"]:
+            for key in ["input_cost_aud", "output_cost_aud", "reasoning_cost_aud", "total_cost_aud"]:
                 if record.get(key) is not None:
                     record[key] = float(record[key])
 
@@ -434,7 +429,6 @@ class MasterAgentMetricsJob:
 
 def run_metrics_job(
     config: MonitoringConfig,
-    pricing_config: AgentPricingConfig = MASTER_AGENT_PRICING,
     spark: Optional[SparkSession] = None,
 ) -> JobResult:
     """
@@ -444,8 +438,7 @@ def run_metrics_job(
     or workflow.
 
     Args:
-        config: Monitoring configuration with experiment ID and table details
-        pricing_config: Pricing configuration for cost calculation
+        config: Monitoring configuration with experiment ID, table details, and pricing
         spark: SparkSession (creates one if not provided)
 
     Returns:
@@ -459,6 +452,10 @@ def run_metrics_job(
             experiment_id="123456789",
             catalog="prod_catalog",
             schema="smart_investigator",
+            model_name="gpt-4o",
+            input_cost_per_1k_usd=0.0025,
+            output_cost_per_1k_usd=0.01,
+            usd_to_aud_multiplier=1.55,
         )
 
         result = run_metrics_job(config)
@@ -468,5 +465,5 @@ def run_metrics_job(
         else:
             print(f"Job failed: {result.error_message}")
     """
-    job = MasterAgentMetricsJob(config, pricing_config, spark)
+    job = MasterAgentMetricsJob(config, spark)
     return job.run()
