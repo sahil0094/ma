@@ -27,43 +27,42 @@ Draft key concerns and their description for external investigation :
     f. Ensure all concerns are clear and avoid using any jargons.
     g. Re-frame any opinion-based language from INITIAL REVIEW into neutral, factual statements. Do not echo subjective terms like "grossly", "suspicious", or "concerning" from the source material.
 
-4. Review your key concerns along with their rationale:
-    a. Ensure all possible concerns from INITIAL REVIEW are captured
-    b. Verify no two concerns cover the same underlying issue (consolidate if needed)
-    c. Confirm each concern meets the RELEVANCE_CRITERIA below
-    d. Check all language complies with LANGUAGE_GUIDELINES below
+4. CRITICAL REVIEW STEP - Before outputting, review each concern:
+    a. Does this concern ONLY involve parties listed on the claim? If NO → REMOVE
+    b. Can this concern be substantiated through investigation? If NO → REMOVE
+    c. Does this concern overlap with another? If YES → CONSOLIDATE into one
+    d. Does this concern use neutral, factual language? If NO → REFRAME
+    e. Does the rationale include specific evidence AND financial/valuation implications? If NO → ENHANCE
+
+5. Aim for 3-5 distinct, well-supported concerns. Quality over quantity.
 </TASK>
 
 <LANGUAGE_GUIDELINES>
-DO NOT USE accusatory, opinion-based, or prejudicial language. Replace with neutral, factual alternatives:
+Use neutral, factual language. Replace accusatory or opinion-based terms:
 
-AVOID these terms:
-- "fraudulent", "fraud", "staged" (implies guilt)
-- "suspicious", "concerning" (opinion-based)
-- "grossly", "extremely", "significantly" (subjective modifiers)
-- "red flags", "warning signs" (prejudicial)
-- "collusion", "conspiracy" (implies criminal intent)
-- "motive", "intentional" (assumes intent)
+AVOID: "fraudulent", "fraud", "suspicious", "concerning", "red flags", "warning signs", "collusion", "conspiracy", "motive", "intentional", "grossly", "extremely"
 
-USE these alternatives:
-- "requires verification" / "warrants investigation"
-- "inconsistent with" / "does not align with"
-- "discrepancy between X and Y"
-- "requires clarification"
-- "pattern of [factual observation]"
+USE INSTEAD: "requires verification", "determine whether X is consistent with insured's version", "discrepancy between X and Y", "pattern of similar claims", "warrants investigation"
 
-Frame concerns as areas requiring investigation to establish facts, not as evidence of wrongdoing. Do not imply conclusions before investigation is complete.
+CRITICAL: Avoiding prejudicial language does NOT mean excluding legitimate investigation areas. Verifying incident circumstances, checking for patterns in claims history, and assessing valuation discrepancies are all valid concerns - they just need neutral framing.
+
+Do not echo opinion-based language from INITIAL REVIEW. If the input says "grossly overinsured", reframe as "insured value exceeds market valuation".
 </LANGUAGE_GUIDELINES>
 
 <RELEVANCE_CRITERIA>
-A "call out" is an observation worth noting. A "key concern" is a material issue that could impact coverage, liability, or claim validity. Only include KEY CONCERNS in your output.
+Only include KEY CONCERNS - material issues impacting coverage, liability, or claim validity. Exclude observations that are merely "call outs".
 
-Before including a concern, verify it meets ALL criteria:
-1. **Party Scope**: Only include concerns about parties listed on the current claim (insured, claimant, witnesses). Do not include background information (e.g., criminal history) of non-listed parties unless they are directly named in the claim circumstances.
-2. **Actionable**: The concern must be verifiable through external investigation. If there is no legal requirement, no available evidence source, or no practical way to substantiate, it is a call out, not a concern.
-3. **Non-Duplicative**: Each concern must address a distinct issue. If points overlap with another concern, consolidate them into one.
-4. **Material**: The concern must potentially impact coverage, liability, fraud exposure, or claim validity. General observations that don't affect the claim outcome are call outs, not concerns.
-5. **Evidence-Based**: The concern must be grounded in specific evidence from INITIAL REVIEW, not inferred from general patterns or assumptions about behavior.
+STRICTLY apply each criterion - if a concern fails ANY criterion, EXCLUDE it:
+
+1. **Party Scope**: ONLY include concerns about parties explicitly listed on the current claim. Background information (criminal history, address history, associations) of individuals NOT named as claim parties is NOT relevant - exclude it entirely.
+
+2. **Actionable**: The concern must be verifiable through investigation. Ask: "Is there a legal requirement, documentary evidence, or practical method to substantiate this?" If NO, exclude it.
+
+3. **Non-Duplicative**: Each concern must cover a DISTINCT issue. Before adding a concern, check if it overlaps with another - if so, consolidate into ONE comprehensive concern rather than listing separately.
+
+4. **Material**: The concern must directly impact claim outcome. Behavioral observations (timing of calls, how claim was lodged) are NOT standalone concerns unless they directly affect validity.
+
+5. **Evidence-Based**: Must reference specific evidence from INITIAL REVIEW. Do not include concerns based on assumptions about intent or inferences from general patterns.
 </RELEVANCE_CRITERIA>
 
 <CONSTRAINTS>
