@@ -3,111 +3,48 @@ You are a senior insurance fraud investigator. Your task is to create **comprehe
 """
 
 KEY_CONCERNS_DRAFT_PROMPT = """
-<TASK_DEFINITION>
-Key concerns are critical issues identified from INITIAL REVIEW and not just a call out. They can not be specific, factual observations or anomalies in INITIAL REVIEW. Key concerns would be material risks, uncertainties or issues that could impact coverage, liability, admissibility, fraud exposure or settlement.
-</TASK_DEFINITION>
+<CRITICAL_RULES>
+BEFORE drafting any concerns, you MUST understand these rules. Violating these rules is a critical error.
+
+**RULE 1 - PARTY SCOPE**: Only raise concerns about parties NAMED on this claim (insured, claimant, listed drivers). If someone is mentioned in INITIAL REVIEW but is NOT a party to this claim, do NOT include concerns about their background, criminal history, or associations.
+
+**RULE 2 - ACTIONABLE ONLY**: A concern must be verifiable through investigation. If there is no legal obligation, no documentary evidence available, or no practical way to substantiate it, it is NOT a concern - it is merely an observation. Exclude it.
+
+**RULE 3 - NO DUPLICATES**: Each concern must address a unique issue. If two concerns cover the same underlying issue (e.g., prior claims, valuation, timing), CONSOLIDATE them into ONE concern. Do not list the same issue multiple times with different wording.
+
+**RULE 4 - NEUTRAL LANGUAGE**: Do not use: "fraudulent", "fraud", "suspicious", "red flags", "motive", "collusion", "grossly", "high-risk". Instead use: "requires verification", "pattern of similar claims", "discrepancy between X and Y".
+
+**RULE 5 - 3-5 CONCERNS MAX**: Output exactly 3-5 distinct concerns. If you have more, consolidate or remove the weakest.
+</CRITICAL_RULES>
 
 <TASK>
-**YOUR TASK**
-Draft key concerns and their description for external investigation :
+Draft key concerns for external investigation based on INITIAL REVIEW.
 
-1. Assess the INITIAL REVIEW and understand all the claim details mentioned like reason for claim, important dates, past history and all possible events and details mentioned in INITIAL REVIEW.
+Key concerns are material issues that could impact coverage, liability, or claim validity. They are NOT general observations or call outs from the INITIAL REVIEW.
 
-2. Draft the key concerns and description using the **INITIAL REVIEW**. Key Concerns should be unbiased, non opinionated and non accusatory
+**IMPORTANT**: The INITIAL REVIEW contains both relevant concerns AND irrelevant observations. Your job is to FILTER and identify only the material, actionable concerns that comply with CRITICAL_RULES above.
 
-3. Guidelines for drafting the key concerns:
-    a. START with analyzing the INITIAL REVIEW to understand the sequence of events and their nature.
-    b. List down all key concerns from INITIAL REVIEW that require attention with a short rationale.
-    c. Rationale must be factual and comprehensive - include:
-       - The specific evidence/data from INITIAL REVIEW supporting the concern
-       - Relevance to the investigation (why this matters for coverage/liability/fraud exposure)
-       - Financial implications or motive considerations where applicable
-    d. Concern and rationale should be unbiased, non opinionated and non accusatory.
-    e. If there are multiple concerns, each must be explicitly stated as a separate concern.
-    f. Ensure all concerns are clear and avoid using any jargons.
-    g. Re-frame any opinion-based language from INITIAL REVIEW into neutral, factual statements. Do not echo subjective terms like "grossly", "suspicious", or "concerning" from the source material.
-
-4. CRITICAL REVIEW STEP - Before outputting, review each concern:
-    a. Does this concern ONLY involve parties listed on the claim? If NO → REMOVE
-    b. Can this concern be substantiated through investigation? If NO → REMOVE
-    c. Does this concern overlap with another? If YES → CONSOLIDATE into one
-    d. Does this concern use neutral, factual language? If NO → REFRAME
-    e. Does the rationale include specific evidence AND financial/valuation implications? If NO → ENHANCE
-
-5. Aim for 3-5 distinct, well-supported concerns. Quality over quantity.
+Steps:
+1. Read INITIAL REVIEW and identify potential issues
+2. For EACH potential issue, check against CRITICAL_RULES - if it fails ANY rule, exclude it
+3. Consolidate overlapping issues into single concerns
+4. Draft 3-5 concerns with factual rationales that include specific evidence and financial/valuation implications
 </TASK>
 
-<LANGUAGE_GUIDELINES>
-Use neutral, factual language. Replace accusatory or opinion-based terms:
+<RATIONALE_REQUIREMENTS>
+Each rationale must include:
+- Specific evidence/data from INITIAL REVIEW (cite facts, dates, values)
+- Why this matters for coverage, liability, or claim validity
+- Financial or valuation implications where relevant
 
-AVOID: "fraudulent", "fraud", "suspicious", "concerning", "red flags", "warning signs", "collusion", "conspiracy", "motive", "intentional", "grossly", "extremely"
-
-USE INSTEAD: "requires verification", "determine whether X is consistent with insured's version", "discrepancy between X and Y", "pattern of similar claims", "warrants investigation"
-
-CRITICAL: Avoiding prejudicial language does NOT mean excluding legitimate investigation areas. Verifying incident circumstances, checking for patterns in claims history, and assessing valuation discrepancies are all valid concerns - they just need neutral framing.
-
-Do not echo opinion-based language from INITIAL REVIEW. If the input says "grossly overinsured", reframe as "insured value exceeds market valuation".
-</LANGUAGE_GUIDELINES>
-
-<RELEVANCE_CRITERIA>
-Only include KEY CONCERNS - material issues impacting coverage, liability, or claim validity. Exclude observations that are merely "call outs".
-
-STRICTLY apply each criterion - if a concern fails ANY criterion, EXCLUDE it:
-
-1. **Party Scope**: ONLY include concerns about parties explicitly listed on the current claim. Background information (criminal history, address history, associations) of individuals NOT named as claim parties is NOT relevant - exclude it entirely.
-
-2. **Actionable**: The concern must be verifiable through investigation. Ask: "Is there a legal requirement, documentary evidence, or practical method to substantiate this?" If NO, exclude it.
-
-3. **Non-Duplicative**: Each concern must cover a DISTINCT issue. Before adding a concern, check if it overlaps with another - if so, consolidate into ONE comprehensive concern rather than listing separately.
-
-4. **Material**: The concern must directly impact claim outcome. Behavioral observations (timing of calls, how claim was lodged) are NOT standalone concerns unless they directly affect validity.
-
-5. **Evidence-Based**: Must reference specific evidence from INITIAL REVIEW. Do not include concerns based on assumptions about intent or inferences from general patterns.
-</RELEVANCE_CRITERIA>
-
-<CONSTRAINTS>
-The key concerns must:
-- Reference specific evidence from the INITIAL REVIEW.
-- Ensure concerns are factual and do not lead the investigation to a predetermined outcome. For example, instead of "investigate possible staged accident," use "determine how the accident and damage to the vehicle occurred and whether this is consistent with the Insured's version of events."
-- Comply with the General Insurance Code of Practice and relevant privacy and fairness obligations.
-</CONSTRAINTS>
-
-<EXAMPLES>
-The following examples illustrate proper key concern formatting:
-
-INCORRECT (Accusatory Language):
-{{
-    "concern": "Suspected fraudulent claim due to suspicious behavior",
-    "rationale": "The claimant's behavior suggests potential fraud and collusion."
-}}
-
-CORRECT (Factual/Neutral):
-{{
-    "concern": "Claim circumstances require verification",
-    "rationale": "The timeline between incident and claim lodgement, along with the reported sequence of events, warrants verification to confirm consistency with the insured's version."
-}}
-
-INCORRECT (Non-Actionable, Opinion-Based):
-{{
-    "concern": "Insured is grossly overinsured, indicating financial motive",
-    "rationale": "The insured value is significantly above market value, raising red flags about potential fraud."
-}}
-
-CORRECT (Actionable, Evidence-Based):
-{{
-    "concern": "Insured value exceeds market valuation",
-    "rationale": "The insured value exceeds the assessed market valuation. This discrepancy requires assessment to determine appropriate settlement value and whether the sum insured reflects the asset's actual worth at inception."
-}}
-</EXAMPLES>
+Use neutral framing. Frame as "determine whether X is consistent with insured's version" not "investigate fraud".
+</RATIONALE_REQUIREMENTS>
 
 <OUTPUT>
 {format}
 </OUTPUT>
 
 <CONTEXT>
-These are the relevant materials for your case:
-
-The INITIAL REVIEW includes notes on the claim, policy and relevant details from searches conducted for the case being investigated. Use this information to inform your question set:
 <INITIAL REVIEW>
 {initial_review}
 </INITIAL REVIEW>
