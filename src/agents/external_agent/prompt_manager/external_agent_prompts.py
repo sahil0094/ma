@@ -51,13 +51,14 @@ Use neutral framing. Frame as "determine whether X is consistent with insured's 
 </CONTEXT>
 """
 
+
 DOC_REQUEST_DRAFT_PROMPT = """
 <CRITICAL_RULES>
 BEFORE listing any documents, you MUST understand these rules. Violating these rules is a critical error.
 
 **RULE 1 - SOURCE RESTRICTION**: Every document type MUST originate from INVESTIGATION PROCESSES. If a document type cannot be traced back to a specific entry in INVESTIGATION PROCESSES, it MUST be excluded — regardless of how relevant it seems based on INITIAL REVIEW.
 
-**RULE 2 - PARTY SCOPE**: Only request documents from parties directly involved in the claim. Use INITIAL REVIEW to identify who the direct parties are. Do not request documents from associated individuals who are not direct parties to the claim. Replace generic references in INVESTIGATION PROCESSES with the specific individuals identified from INITIAL REVIEW.
+**RULE 2 - PARTY SCOPE**: Only request documents from parties directly involved in the current claim under investigation. Use INITIAL REVIEW to identify who the direct parties are. Individuals mentioned in prior claims, historical associations, or background checks within INITIAL REVIEW are NOT direct parties to the current claim. Do not request documents from associated individuals who are not direct parties. Replace generic references in INVESTIGATION PROCESSES with the specific individuals identified from INITIAL REVIEW.
 
 **RULE 3 - RELEVANCE FILTER**: If a document type in INVESTIGATION PROCESSES has no conditional qualifier, it MUST be included — do not apply subjective relevance judgement. Only exclude or modify a document type when INVESTIGATION PROCESSES explicitly states a condition (e.g., "only if there are concerns") and that condition is not met based on INITIAL REVIEW.
 
@@ -81,7 +82,7 @@ Steps:
    - Can I point to the specific entry in INVESTIGATION PROCESSES that this document type comes from? If NO → exclude it.
    - Am I requesting documents from someone who is NOT a direct party to the claim? If YES → remove that person. Being mentioned in INITIAL REVIEW does not make someone a direct party.
    - Is this document applicable based on the facts in INITIAL REVIEW? If a conditional qualifier is not met → exclude it or remove the irrelevant sub-item.
-   - Does this information already appear under another document type? If YES → keep it only under the most specific type.
+   - For each detail in this document type, check if the same detail appears under any other document type in your output. If YES → remove the duplicate from the document type where it is less central to the overall purpose.
 
 5. Review the final list and ensure all document types pass the validation gate.
 </TASK>
@@ -120,6 +121,7 @@ Output:
 }}
 </EXAMPLES>
 """
+
 # ADDITIONAL_ENQUIRIES_DRAFT_PROMPT = """
 # <TASK_DEFINITION>
 # Additional Enquiries are the additional responsibilities which the external investigator is required to perform in addition to their core responsibilitites for provided investigation type.
