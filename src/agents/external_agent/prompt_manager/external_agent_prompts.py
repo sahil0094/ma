@@ -105,42 +105,114 @@ Output:
 </EXAMPLES>
 """
 
+# ADDITIONAL_ENQUIRIES_DRAFT_PROMPT = """
+# <TASK_DEFINITION>
+# Additional Enquiries are the additional responsibilities which the external investigator is required to perform in addition to their core responsibilitites for provided investigation type.
+# </TASK_DEFINITION>
+
+# <TASK>
+# **YOUR TASK**
+# Determine the ADDITIONAL ENQUIRIES required for provided investigation type :
+
+# 1. Assess the INITIAL REVIEW and understand all the claim details mentioned like reason for claim, important dates, past history and all possible events and details mentioned in INITIAL REVIEW.
+
+# 2. Determine the ADDITIONAL ENQUIRIES using **INITIAL REVIEW** and **INVESTIGATION PROCESSES**.
+
+# 3. Guidelines for drafting the key concerns:
+#     a. Analyse the INITIAL REVIEW to understand the sequence of events and their nature.
+#     b. Analyse the knowledge from INVESTIGATION PROCESSES to understand what all additional enquiries are generally raised for given investigation type.
+#     c. Determine the ADDITIONAL ENQUIRIES using INITIAL REVIEW and INVESTIGATION PROCESSES.
+#     d. Include details about what needs to be done in the additional enquiries.
+#     e. If there are multiple enquiries, details must be explicitly stated for each.
+#     f. Ensure enquiries and details are clear and avoid using any jargons.
+
+# 4. Review the enquiries generated and ensure that you have included all details for all enquiries.
+# </TASK>
+
+# <CONTEXT>
+# These are the relevant materials for your case:
+
+# The INITIAL REVIEW includes notes on the claim, policy and relevant details from searches conducted for the case being investigated. Use this information to inform your question set:
+# <INITIAL REVIEW>
+# {initial_review}
+# </INITIAL REVIEW>
+
+# Here is the INVESTIGATION PROCESSES to guide you:
+# <INVESTIGATION PROCESSES>
+# {knowledge}
+# </INVESTIGATION PROCESSES>
+# </CONTEXT>
+
+# <OUTPUT>
+# {format}
+# </OUTPUT>
+
+# <EXAMPLES>
+# Example 1:
+# Output:
+# {{
+#     "enquiry":"Please canvas loss location",
+#     "enquiry_details":"Please canvas loss location to confirm exactly where accident occurred, the barricade IO hit, any witnesses, CCTV etc, road conditions "
+# }}
+# Example 2:
+# Output:
+# {{
+#     "enquiry":"Please speak to Towie",
+#     "enquiry_details":"Please speak to Towie if identified and confirm observations, when contacted for tow, any other details they can provide"
+# }}
+# </EXAMPLES>
+# """
+
 ADDITIONAL_ENQUIRIES_DRAFT_PROMPT = """
+
 <TASK_DEFINITION>
-Additional Enquiries are the additional responsibilities which the external investigator is required to perform in addition to their core responsibilitites for provided investigation type.
+Additional Enquiries are the additional responsibilities which the external investigator is required to perform in addition to their core responsibilities for provided investigation type.
 </TASK_DEFINITION>
+
+<CRITICAL_RULES>
+BEFORE drafting any enquiries, you MUST understand these rules. Violating these rules is a critical error.
+
+**RULE 1 - SOURCE RESTRICTION**: Every enquiry MUST originate from INVESTIGATION PROCESSES. If an enquiry cannot be traced back to a specific section or requirement in INVESTIGATION PROCESSES, it MUST be excluded — regardless of how relevant it seems based on INITIAL REVIEW.
+
+**RULE 2 - CONTEXTUALISATION ONLY**: INITIAL REVIEW is used ONLY to fill in case-specific details (names, dates, locations, vehicle types, etc.) into enquiries sourced from INVESTIGATION PROCESSES. INITIAL REVIEW must NEVER be used to generate new enquiry topics.
+
+**RULE 3 - EXTERNAL SCOPE ONLY**: All enquiries must be actions an external investigator can perform (e.g., canvassing, interviewing witnesses, obtaining records from third parties). Exclude any enquiry that relates to internal processes, internal review, or actions performed by the insurer's own team.
+</CRITICAL_RULES>
 
 <TASK>
 **YOUR TASK**
-Determine the ADDITIONAL ENQUIRIES required for provided investigation type :
+Determine the ADDITIONAL ENQUIRIES required for provided investigation type:
 
-1. Assess the INITIAL REVIEW and understand all the claim details mentioned like reason for claim, important dates, past history and all possible events and details mentioned in INITIAL REVIEW.
+Steps:
+1. Read INVESTIGATION PROCESSES first. Identify all additional enquiries/responsibilities specified for the given investigation type. These are your ONLY permitted enquiry topics.
 
-2. Determine the ADDITIONAL ENQUIRIES using **INITIAL REVIEW** and **INVESTIGATION PROCESSES**.
+2. Read INITIAL REVIEW to extract case-specific details (names, dates, locations, incident specifics).
 
-3. Guidelines for drafting the key concerns:
-    a. Analyse the INITIAL REVIEW to understand the sequence of events and their nature.
-    b. Analyse the knowledge from INVESTIGATION PROCESSES to understand what all additional enquiries are generally raised for given investigation type.
-    c. Determine the ADDITIONAL ENQUIRIES using INITIAL REVIEW and INVESTIGATION PROCESSES.
-    d. Include details about what needs to be done in the additional enquiries.
-    e. If there are multiple enquiries, details must be explicitly stated for each.
-    f. Ensure enquiries and details are clear and avoid using any jargons.
+3. For each enquiry identified in Step 1, contextualise it with relevant details from Step 2.
 
-4. Review the enquiries generated and ensure that you have included all details for all enquiries.
+4. **Validation gate**: Before including each enquiry in your output, confirm:
+   - Can I point to the specific section in INVESTIGATION PROCESSES that this enquiry comes from? If NO → exclude it.
+   - Is this an action for an external investigator (not internal)? If NO → exclude it.
+
+5. Include details about what needs to be done in the additional enquiries. If there are multiple enquiries, details must be explicitly stated for each.
+
+6. Ensure enquiries and details are clear and avoid using any jargons.
+
+Review the enquiries generated and ensure every single one passes the validation gate in Step 4.
 </TASK>
 
 <CONTEXT>
 These are the relevant materials for your case:
 
-The INITIAL REVIEW includes notes on the claim, policy and relevant details from searches conducted for the case being investigated. Use this information to inform your question set:
-<INITIAL REVIEW>
-{initial_review}
-</INITIAL REVIEW>
-
-Here is the INVESTIGATION PROCESSES to guide you:
+Here is the INVESTIGATION PROCESSES — this is your ONLY source for enquiry topics:
 <INVESTIGATION PROCESSES>
 {knowledge}
 </INVESTIGATION PROCESSES>
+
+The INITIAL REVIEW provides case-specific details for contextualisation only. Do NOT derive new enquiry topics from this section:
+<INITIAL REVIEW>
+{initial_review}
+</INITIAL REVIEW>
 </CONTEXT>
 
 <OUTPUT>
@@ -150,17 +222,20 @@ Here is the INVESTIGATION PROCESSES to guide you:
 <EXAMPLES>
 Example 1:
 Output:
-{{
-    "enquiry":"Please canvas loss location",
-    "enquiry_details":"Please canvas loss location to confirm exactly where accident occurred, the barricade IO hit, any witnesses, CCTV etc, road conditions "
-}}
+
+JSON
+{
+  "enquiry": "Please canvas loss location",
+  "enquiry_details": "Please canvas loss location to confirm exactly where accident occurred, the barricade IO hit, any witnesses, CCTV etc, road conditions"
+}
 Example 2:
 Output:
-{{
-    "enquiry":"Please speak to Towie",
-    "enquiry_details":"Please speak to Towie if identified and confirm observations, when contacted for tow, any other details they can provide"
-}}
-</EXAMPLES>
+
+JSON
+{
+  "enquiry": "Please speak to Towie",
+  "enquiry_details": "Please speak to Towie if identified and confirm observations, when contacted for tow, any other details they can provide"
+}
 """
 
 INTERVIEW_PLAN_DRAFT_PROMPT = """
