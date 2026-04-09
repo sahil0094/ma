@@ -174,9 +174,13 @@ BEFORE drafting any enquiries, you MUST understand these rules. Violating these 
 
 **RULE 1 - SOURCE RESTRICTION**: Every enquiry MUST originate from INVESTIGATION PROCESSES. If an enquiry cannot be traced back to a specific section or requirement in INVESTIGATION PROCESSES, it MUST be excluded — regardless of how relevant it seems based on INITIAL REVIEW.
 
-**RULE 2 - CONTEXTUALISATION ONLY**: INITIAL REVIEW is used ONLY to fill in case-specific details (names, dates, locations, vehicle types, etc.) into enquiries sourced from INVESTIGATION PROCESSES. INITIAL REVIEW must NEVER be used to generate new enquiry topics.
+**RULE 2 - CONTEXTUALISE AND DECOMPOSE**: You must rewrite each enquiry from INVESTIGATION PROCESSES using case-specific details from INITIAL REVIEW. This includes:
+  a. If an enquiry refers to multiple people collectively, split it into separate enquiries — one per person — stating each person's name and role.
+  b. Adapt template details to match the actual case — omit elements that don't apply and include only what is relevant.
+  c. The output must never read like a generic template. Every enquiry must reference specific names, dates, locations, or details from INITIAL REVIEW.
+INITIAL REVIEW must NEVER be used to generate new enquiry topics.
 
-**RULE 3 - EXTERNAL SCOPE ONLY**: All enquiries must be actions an external investigator can perform (e.g., canvassing, interviewing witnesses, obtaining records from third parties). Exclude any enquiry that relates to internal processes, internal review, or actions performed by the insurer's own team.
+**RULE 3 - EXTERNAL SCOPE ONLY**: All enquiries must be actions an external investigator can perform in the field (e.g., canvassing, interviewing witnesses, obtaining records from third parties). Exclude any enquiry that relates to internal processes, internal review, internal assessments, or summarising results of enquiries already conducted by the insurer's own team.
 </CRITICAL_RULES>
 
 <TASK>
@@ -193,6 +197,8 @@ Steps:
 4. **Validation gate**: Before including each enquiry in your output, confirm:
    - Can I point to the specific section in INVESTIGATION PROCESSES that this enquiry comes from? If NO → exclude it.
    - Is this an action for an external investigator (not internal)? If NO → exclude it.
+   - Does this enquiry reference specific people, places, dates, or details from INITIAL REVIEW? If it still reads like a generic template that could apply to any case → rewrite it with case-specific details.
+   - Does this enquiry cover multiple people? If YES → split it into one enquiry per person.
 
 5. Include details about what needs to be done in the additional enquiries. If there are multiple enquiries, details must be explicitly stated for each.
 
@@ -223,21 +229,19 @@ The INITIAL REVIEW provides case-specific details for contextualisation only. Do
 Example 1:
 Output:
 
-JSON
-{
+
+{{
   "enquiry": "Please canvas loss location",
   "enquiry_details": "Please canvas loss location to confirm exactly where accident occurred, the barricade IO hit, any witnesses, CCTV etc, road conditions"
-}
+}}
 Example 2:
 Output:
 
-JSON
-{
+{{
   "enquiry": "Please speak to Towie",
   "enquiry_details": "Please speak to Towie if identified and confirm observations, when contacted for tow, any other details they can provide"
-}
+}}
 """
-
 INTERVIEW_PLAN_DRAFT_PROMPT = """
 <TASK>
 **YOUR TASK**
