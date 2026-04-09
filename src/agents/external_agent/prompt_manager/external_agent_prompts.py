@@ -59,7 +59,7 @@ BEFORE listing any documents, you MUST understand these rules. Violating these r
 
 **RULE 2 - PARTY SCOPE**: Only request documents from parties directly involved in the claim. Use INITIAL REVIEW to identify who the direct parties are. Do not request documents from associated individuals who are not direct parties to the claim. Replace generic references in INVESTIGATION PROCESSES with the specific individuals identified from INITIAL REVIEW.
 
-**RULE 3 - RELEVANCE FILTER**: For each document type from INVESTIGATION PROCESSES, assess whether it is applicable based on the facts in INITIAL REVIEW. If INVESTIGATION PROCESSES includes a conditional qualifier (e.g., "only if there are concerns"), apply that condition against INITIAL REVIEW — if the condition is not met, exclude that document or the irrelevant sub-item from the output.
+**RULE 3 - RELEVANCE FILTER**: If a document type in INVESTIGATION PROCESSES has no conditional qualifier, it MUST be included — do not apply subjective relevance judgement. Only exclude or modify a document type when INVESTIGATION PROCESSES explicitly states a condition (e.g., "only if there are concerns") and that condition is not met based on INITIAL REVIEW.
 
 **RULE 4 - NO DUPLICATES**: Each piece of information must appear under exactly one document type. If the same information could fall under multiple document types, place it under the most specific one and exclude it from the others.
 </CRITICAL_RULES>
@@ -75,11 +75,11 @@ Steps:
 
 3. For each document type identified in Step 1:
     a. Assess whether it is relevant to this case based on INITIAL REVIEW (apply RULE 3).
-    b. If relevant, contextualise the document details with case-specific information from INITIAL REVIEW — include specific names, dates, vehicle details, and locations where applicable.
+    b. If relevant, contextualise the document details with case-specific information from INITIAL REVIEW — include specific names, vehicle details, and locations where applicable. Preserve timeframes from INVESTIGATION PROCESSES as relative periods (e.g., "3-month period", "1 week prior to and after the incident"). Do not convert them into specific date ranges.
 
 4. **Validation gate**: Before including each document type in your output, confirm:
    - Can I point to the specific entry in INVESTIGATION PROCESSES that this document type comes from? If NO → exclude it.
-   - Am I only requesting this from parties directly involved in the claim? If NO → remove irrelevant parties.
+   - Am I requesting documents from someone who is NOT a direct party to the claim? If YES → remove that person. Being mentioned in INITIAL REVIEW does not make someone a direct party.
    - Is this document applicable based on the facts in INITIAL REVIEW? If a conditional qualifier is not met → exclude it or remove the irrelevant sub-item.
    - Does this information already appear under another document type? If YES → keep it only under the most specific type.
 
@@ -120,7 +120,6 @@ Output:
 }}
 </EXAMPLES>
 """
-
 # ADDITIONAL_ENQUIRIES_DRAFT_PROMPT = """
 # <TASK_DEFINITION>
 # Additional Enquiries are the additional responsibilities which the external investigator is required to perform in addition to their core responsibilitites for provided investigation type.
