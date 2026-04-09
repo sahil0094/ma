@@ -52,36 +52,52 @@ Use neutral framing. Frame as "determine whether X is consistent with insured's 
 """
 
 DOC_REQUEST_DRAFT_PROMPT = """
+<CRITICAL_RULES>
+BEFORE listing any documents, you MUST understand these rules. Violating these rules is a critical error.
+
+**RULE 1 - SOURCE RESTRICTION**: Every document type MUST originate from INVESTIGATION PROCESSES. If a document type cannot be traced back to a specific entry in INVESTIGATION PROCESSES, it MUST be excluded — regardless of how relevant it seems based on INITIAL REVIEW.
+
+**RULE 2 - PARTY SCOPE**: Only request documents from parties directly involved in the claim. Use INITIAL REVIEW to identify who the direct parties are. Do not request documents from associated individuals who are not direct parties to the claim. Replace generic references in INVESTIGATION PROCESSES with the specific individuals identified from INITIAL REVIEW.
+
+**RULE 3 - RELEVANCE FILTER**: For each document type from INVESTIGATION PROCESSES, assess whether it is applicable based on the facts in INITIAL REVIEW. If INVESTIGATION PROCESSES includes a conditional qualifier (e.g., "only if there are concerns"), apply that condition against INITIAL REVIEW — if the condition is not met, exclude that document or the irrelevant sub-item from the output.
+
+**RULE 4 - NO DUPLICATES**: Each piece of information must appear under exactly one document type. If the same information could fall under multiple document types, place it under the most specific one and exclude it from the others.
+</CRITICAL_RULES>
+
 <TASK>
 **YOUR TASK**
-List down all the document types and document details required for external investigation for provided investigation type :
+List down all the document types and document details required for external investigation for provided investigation type:
 
-1. Assess the INITIAL REVIEW and understand all the claim details mentioned like reason for claim, important dates, past history and all possible events and details mentioned in INITIAL REVIEW.
+Steps:
+1. Read INVESTIGATION PROCESSES first. Identify all document types specified for the given investigation type. These are your ONLY permitted document types.
 
-2. List down the document types and document details required using the **INITIAL REVIEW** and **INVESTIGATION PROCESSES**.
+2. Read INITIAL REVIEW to extract case-specific details (names of relevant parties, dates, locations, incident specifics).
 
-3. Guidelines for listing down the document types and details:
-    a. START with analyzing the INITIAL REVIEW to understand the sequence of events and their nature.
-    b. Analyse the knowledge from INVESTIGATION PROCESSES to understand what all documents are requested for given investigation type
-    c. List down all the document types using INITIAL REVIEW and INVESTIGATION PROCESSES that are required with details of what all documents are required.
-    d. As per initial review, you can mention the detailed list of documents in the "document details".
+3. For each document type identified in Step 1:
+    a. Assess whether it is relevant to this case based on INITIAL REVIEW (apply RULE 3).
+    b. If relevant, contextualise the document details with case-specific information from INITIAL REVIEW — include specific names, dates, vehicle details, and locations where applicable.
 
-4. Review the document types along with their details and ensure that you have included all possible documents required.
+4. **Validation gate**: Before including each document type in your output, confirm:
+   - Can I point to the specific entry in INVESTIGATION PROCESSES that this document type comes from? If NO → exclude it.
+   - Am I only requesting this from parties directly involved in the claim? If NO → remove irrelevant parties.
+   - Is this document applicable based on the facts in INITIAL REVIEW? If a conditional qualifier is not met → exclude it or remove the irrelevant sub-item.
+   - Does this information already appear under another document type? If YES → keep it only under the most specific type.
 
+5. Review the final list and ensure all document types pass the validation gate.
 </TASK>
 
 <CONTEXT>
 These are the relevant materials for your case:
 
-The INITIAL REVIEW includes notes on the claim, policy and relevant details from searches conducted for the case being investigated. Use this information to inform your question set:
-<INITIAL REVIEW>
-{initial_review}
-</INITIAL REVIEW>
-
-Here is the INVESTIGATION PROCESSES to guide you:
+Here is the INVESTIGATION PROCESSES — this is your ONLY source for document types:
 <INVESTIGATION PROCESSES>
 {knowledge}
 </INVESTIGATION PROCESSES>
+
+The INITIAL REVIEW provides case-specific details for contextualisation and relevance assessment. Do NOT derive new document types from this section:
+<INITIAL REVIEW>
+{initial_review}
+</INITIAL REVIEW>
 </CONTEXT>
 
 <OUTPUT>
@@ -93,14 +109,14 @@ Here are some output examples
 Example 1
 Output:
 {{
-    "doc_type": "Bank Statement ",
-    "doc_details": "All financial statements for any and all accounts held in your name or jointly with somebody else for the period TBA. Please ensure this includes savings, current and credit card accounts and that the records CONFIDENTIAL appear on the letterhead of the relevant financial institution and ensure the bank details are redacted"
+  "doc_type": "Bank Statement",
+  "doc_details": "All financial statements for any and all accounts held in your name or jointly with somebody else for the period TBA. Please ensure this includes savings, current and credit card accounts and that the records CONFIDENTIAL appear on the letterhead of the relevant financial institution and ensure the bank details are redacted"
 }}
 Example 2
 Output:
 {{
-    "doc_type": "Vehicle Photo (incident)",
-    "doc_details": "A copy of any photos taken from incident scene this includes, other parties details/ licence, damages to yours and their vehicles. these photos are in the original format and size, please do not rename the photo and attach the photo to the email itself"
+  "doc_type": "Vehicle Photo (incident)",
+  "doc_details": "A copy of any photos taken from incident scene this includes, other parties details/ licence, damages to yours and their vehicles. these photos are in the original format and size, please do not rename the photo and attach the photo to the email itself"
 }}
 </EXAMPLES>
 """
