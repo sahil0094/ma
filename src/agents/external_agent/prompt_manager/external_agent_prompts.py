@@ -25,10 +25,11 @@ Key concerns are material issues that could impact coverage, liability, or claim
 **IMPORTANT**: The INITIAL REVIEW contains both relevant concerns AND irrelevant observations. Your job is to FILTER and identify only the material, actionable concerns that comply with CRITICAL_RULES above.
 
 Steps:
-1. Read INITIAL REVIEW and identify potential issues
-2. For EACH potential issue, check against CRITICAL_RULES - if it fails ANY rule, exclude it
-3. Consolidate overlapping issues into single concerns
-4. Draft 3-5 concerns with factual rationales that include specific evidence and financial/valuation implications
+1. Read INVESTIGATION PROCESSES to understand what each investigation type is and how it is detected. Use this as a reference to identify which concerns are material.
+2. Read INITIAL REVIEW and identify potential issues
+3. For EACH potential issue, check against CRITICAL_RULES - if it fails ANY rule, exclude it
+4. Consolidate overlapping issues into single concerns
+5. Draft 3-5 concerns with factual rationales that include specific evidence and financial/valuation implications
 </TASK>
 
 <RATIONALE_REQUIREMENTS>
@@ -48,6 +49,11 @@ Use neutral framing. Frame as "determine whether X is consistent with insured's 
 <INITIAL REVIEW>
 {initial_review}
 </INITIAL REVIEW>
+
+Here is the INVESTIGATION PROCESSES to guide you:
+<INVESTIGATION PROCESSES>
+{knowledge}
+</INVESTIGATION PROCESSES>
 </CONTEXT>
 """
 
