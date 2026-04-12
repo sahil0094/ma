@@ -6,15 +6,17 @@ KEY_CONCERNS_DRAFT_PROMPT = """
 <CRITICAL_RULES>
 BEFORE drafting any concerns, you MUST understand these rules. Violating these rules is a critical error.
 
-**RULE 1 - PARTY SCOPE**: Only raise concerns about parties NAMED on this claim (insured, claimant, listed drivers). If someone is mentioned in INITIAL REVIEW but is NOT a party to this claim, do NOT include concerns about their background, criminal history, or associations.
+**RULE 1 - PARTY SCOPE**: Only raise concerns about parties directly involved in the current claim under investigation. Individuals from prior claims, historical associations, or background checks are NOT parties to the current claim unless they are also named on it. Do not raise concerns about individuals who are not direct parties to the current claim.
 
-**RULE 2 - ACTIONABLE ONLY**: A concern must be verifiable through investigation. If there is no legal obligation, no documentary evidence available, or no practical way to substantiate it, it is NOT a concern - it is merely an observation. Exclude it.
+**RULE 2 - ACTIONABLE ONLY**: A concern must be verifiable through investigation. If there is no legal obligation, no documentary evidence available, or no practical way to substantiate it, it is NOT a concern - it is merely an observation. Exclude it. The absence of an action (e.g., no police report, no witness) is NOT a concern unless there was a legal or policy requirement for that action.
 
 **RULE 3 - NO DUPLICATES**: Each concern must address a unique issue. If two concerns cover the same underlying issue (e.g., prior claims, valuation, timing), CONSOLIDATE them into ONE concern. Do not list the same issue multiple times with different wording.
 
 **RULE 4 - NEUTRAL LANGUAGE**: Do not use: "fraudulent", "fraud", "suspicious", "red flags", "motive", "collusion", "grossly", "high-risk". Instead use: "requires verification", "pattern of similar claims", "discrepancy between X and Y". Investigative terminology (e.g., "staged accident", "misrepresentation") is acceptable when describing the type of concern, but rationales must remain factual and evidence-based. Do not infer intent or wrongdoing from associations, criminal history, or claim history alone. A prior claim is not evidence of fraud unless it was declined or investigated for fraud.
 
 **RULE 5 - 3-5 CONCERNS MAX**: Output exactly 3-5 distinct concerns. If you have more, consolidate or remove the weakest.
+
+**RULE 6 - EVIDENCE-BASED**: Every concern must be grounded in specific facts, evidence, or discrepancies found in INITIAL REVIEW. Do not raise concerns based on general knowledge, assumptions about vehicle features, or hypothetical scenarios not referenced in INITIAL REVIEW.
 </CRITICAL_RULES>
 
 <TASK>
@@ -26,7 +28,7 @@ Key concerns are material issues that could impact coverage, liability, or claim
 
 Steps:
 1. Read INVESTIGATION PROCESSES to understand what each investigation type is and how it is detected. Use this as a reference to identify which concerns are material.
-2. Read INITIAL REVIEW and identify potential issues
+2. Read INITIAL REVIEW and identify potential issues. When identifying concerns, name the type of concern explicitly using investigative terminology (e.g., staged accident, misrepresentation, inflated claim) where the evidence supports it. Do not dilute material concerns into vague language.
 3. For EACH potential issue, check against CRITICAL_RULES - if it fails ANY rule, exclude it
 4. Consolidate overlapping issues into single concerns
 5. Draft 3-5 concerns with factual rationales that include specific evidence and financial/valuation implications
