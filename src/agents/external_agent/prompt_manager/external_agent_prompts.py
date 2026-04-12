@@ -12,7 +12,7 @@ BEFORE drafting any concerns, you MUST understand these rules. Violating these r
 
 **RULE 3 - NO DUPLICATES**: Each concern must address a unique issue. If two concerns cover the same underlying issue (e.g., prior claims, valuation, timing), CONSOLIDATE them into ONE concern. Do not list the same issue multiple times with different wording.
 
-**RULE 4 - NEUTRAL LANGUAGE**: Do not use: "fraudulent", "fraud", "suspicious", "red flags", "motive", "collusion", "grossly", "high-risk". Instead use: "requires verification", "pattern of similar claims", "discrepancy between X and Y".
+**RULE 4 - NEUTRAL LANGUAGE**: Do not use: "fraudulent", "fraud", "suspicious", "red flags", "motive", "collusion", "grossly", "high-risk". Instead use: "requires verification", "pattern of similar claims", "discrepancy between X and Y". Investigative terminology (e.g., "staged accident", "misrepresentation") is acceptable when describing the type of concern, but rationales must remain factual and evidence-based. Do not infer intent or wrongdoing from associations, criminal history, or claim history alone. A prior claim is not evidence of fraud unless it was declined or investigated for fraud.
 
 **RULE 5 - 3-5 CONCERNS MAX**: Output exactly 3-5 distinct concerns. If you have more, consolidate or remove the weakest.
 </CRITICAL_RULES>
@@ -51,7 +51,6 @@ Use neutral framing. Frame as "determine whether X is consistent with insured's 
 </CONTEXT>
 """
 
-
 DOC_REQUEST_DRAFT_PROMPT = """
 <CRITICAL_RULES>
 BEFORE listing any documents, you MUST understand these rules. Violating these rules is a critical error.
@@ -60,7 +59,7 @@ BEFORE listing any documents, you MUST understand these rules. Violating these r
 
 **RULE 2 - PARTY SCOPE**: Only request documents from parties directly involved in the current claim under investigation. Use INITIAL REVIEW to identify who the direct parties are. Individuals mentioned in prior claims, historical associations, or background checks within INITIAL REVIEW are NOT direct parties to the current claim. Do not request documents from associated individuals who are not direct parties. Replace generic references in INVESTIGATION PROCESSES with the specific individuals identified from INITIAL REVIEW.
 
-**RULE 3 - RELEVANCE FILTER**: If a document type in INVESTIGATION PROCESSES has no conditional qualifier, it MUST be included — do not apply subjective relevance judgement. Only exclude or modify a document type when INVESTIGATION PROCESSES explicitly states a condition (e.g., "only if there are concerns") and that condition is not met based on INITIAL REVIEW.
+**RULE 3 - RELEVANCE FILTER**: If a document type in INVESTIGATION PROCESSES has no conditional qualifier, it MUST be included — do not apply subjective relevance judgement. Only exclude or modify a document type when INVESTIGATION PROCESSES explicitly states a condition (e.g., "only if there are concerns") and that condition is not met based on INITIAL REVIEW. When applying conditional qualifiers, verify that the condition is met for the specific party being assessed — concerns or findings about associated individuals do not transfer to direct parties.
 
 **RULE 4 - NO DUPLICATES**: Each piece of information must appear under exactly one document type. If the same information could fall under multiple document types, place it under the most specific one and exclude it from the others.
 </CRITICAL_RULES>
@@ -77,6 +76,7 @@ Steps:
 3. For each document type identified in Step 1:
     a. Assess whether it is relevant to this case based on INITIAL REVIEW (apply RULE 3).
     b. If relevant, contextualise the document details with case-specific information from INITIAL REVIEW — include specific names, vehicle details, and locations where applicable. Preserve timeframes from INVESTIGATION PROCESSES as relative periods (e.g., "3-month period", "1 week prior to and after the incident"). Do not convert them into specific date ranges.
+    c. If a document type in INVESTIGATION PROCESSES contains multiple distinct sub-items, you may split them into separate document types in the output. However, do not merge document types that are separate entries in INVESTIGATION PROCESSES, and do not create new document type names — use names derived from INVESTIGATION PROCESSES.
 
 4. **Validation gate**: Before including each document type in your output, confirm:
    - Can I point to the specific entry in INVESTIGATION PROCESSES that this document type comes from? If NO → exclude it.
@@ -122,65 +122,7 @@ Output:
 </EXAMPLES>
 """
 
-# ADDITIONAL_ENQUIRIES_DRAFT_PROMPT = """
-# <TASK_DEFINITION>
-# Additional Enquiries are the additional responsibilities which the external investigator is required to perform in addition to their core responsibilitites for provided investigation type.
-# </TASK_DEFINITION>
-
-# <TASK>
-# **YOUR TASK**
-# Determine the ADDITIONAL ENQUIRIES required for provided investigation type :
-
-# 1. Assess the INITIAL REVIEW and understand all the claim details mentioned like reason for claim, important dates, past history and all possible events and details mentioned in INITIAL REVIEW.
-
-# 2. Determine the ADDITIONAL ENQUIRIES using **INITIAL REVIEW** and **INVESTIGATION PROCESSES**.
-
-# 3. Guidelines for drafting the key concerns:
-#     a. Analyse the INITIAL REVIEW to understand the sequence of events and their nature.
-#     b. Analyse the knowledge from INVESTIGATION PROCESSES to understand what all additional enquiries are generally raised for given investigation type.
-#     c. Determine the ADDITIONAL ENQUIRIES using INITIAL REVIEW and INVESTIGATION PROCESSES.
-#     d. Include details about what needs to be done in the additional enquiries.
-#     e. If there are multiple enquiries, details must be explicitly stated for each.
-#     f. Ensure enquiries and details are clear and avoid using any jargons.
-
-# 4. Review the enquiries generated and ensure that you have included all details for all enquiries.
-# </TASK>
-
-# <CONTEXT>
-# These are the relevant materials for your case:
-
-# The INITIAL REVIEW includes notes on the claim, policy and relevant details from searches conducted for the case being investigated. Use this information to inform your question set:
-# <INITIAL REVIEW>
-# {initial_review}
-# </INITIAL REVIEW>
-
-# Here is the INVESTIGATION PROCESSES to guide you:
-# <INVESTIGATION PROCESSES>
-# {knowledge}
-# </INVESTIGATION PROCESSES>
-# </CONTEXT>
-
-# <OUTPUT>
-# {format}
-# </OUTPUT>
-
-# <EXAMPLES>
-# Example 1:
-# Output:
-# {{
-#     "enquiry":"Please canvas loss location",
-#     "enquiry_details":"Please canvas loss location to confirm exactly where accident occurred, the barricade IO hit, any witnesses, CCTV etc, road conditions "
-# }}
-# Example 2:
-# Output:
-# {{
-#     "enquiry":"Please speak to Towie",
-#     "enquiry_details":"Please speak to Towie if identified and confirm observations, when contacted for tow, any other details they can provide"
-# }}
-# </EXAMPLES>
-# """
-
-ADDITIONAL_ENQUIRIES_DRAFT_PROMPT = """
+ADDITIONAL_ENQUIRIES_DRAFT_PROMPT = f"""
 
 <TASK_DEFINITION>
 Additional Enquiries are the additional responsibilities which the external investigator is required to perform in addition to their core responsibilities for provided investigation type.
@@ -198,6 +140,8 @@ BEFORE drafting any enquiries, you MUST understand these rules. Violating these 
 INITIAL REVIEW must NEVER be used to generate new enquiry topics.
 
 **RULE 3 - EXTERNAL SCOPE ONLY**: All enquiries must be actions an external investigator can perform in the field (e.g., canvassing, interviewing witnesses, obtaining records from third parties). Exclude any enquiry that relates to internal processes, internal review, internal assessments, or summarising results of enquiries already conducted by the insurer's own team.
+
+**RULE 4 - RELEVANCE FILTER**: For each enquiry from INVESTIGATION PROCESSES, assess whether it is applicable based on the facts in INITIAL REVIEW. If INVESTIGATION PROCESSES includes a conditional qualifier (e.g., "if police attended"), apply that condition against INITIAL REVIEW — if the condition is not met, exclude the enquiry. Even without an explicit conditional qualifier, if an enquiry references a scenario, person, or event that has no basis in INITIAL REVIEW, exclude it.
 </CRITICAL_RULES>
 
 <TASK>
@@ -212,10 +156,10 @@ Steps:
 3. For each enquiry identified in Step 1, contextualise it with relevant details from Step 2.
 
 4. **Validation gate**: Before including each enquiry in your output, confirm:
-   - Can I point to the specific section in INVESTIGATION PROCESSES that this enquiry comes from? If NO → exclude it.
-   - Is this an action for an external investigator (not internal)? If NO → exclude it.
+   - Can I point to the specific section in INVESTIGATION PROCESSES that this enquiry comes from? If NO → exclude it..
    - Does this enquiry reference specific people, places, dates, or details from INITIAL REVIEW? If it still reads like a generic template that could apply to any case → rewrite it with case-specific details.
    - Does this enquiry cover multiple people? If YES → split it into one enquiry per person.
+   - Is this enquiry applicable based on the facts in INITIAL REVIEW? If it references a scenario or event with no basis in INITIAL REVIEW → exclude it.
 
 5. Include details about what needs to be done in the additional enquiries. If there are multiple enquiries, details must be explicitly stated for each.
 
@@ -259,6 +203,7 @@ Output:
   "enquiry_details": "Please speak to Towie if identified and confirm observations, when contacted for tow, any other details they can provide"
 }}
 """
+
 INTERVIEW_PLAN_DRAFT_PROMPT = """
 <TASK>
 **YOUR TASK**
