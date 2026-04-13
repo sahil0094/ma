@@ -210,11 +210,13 @@ BEFORE drafting any questions, you MUST understand these rules. Violating these 
 
 **RULE 1 - CONTEXTUALISE**: Every question from INVESTIGATION PROCESSES must be rewritten using case-specific details from INITIAL REVIEW (names, dates, locations, vehicle details). The output must never read like a generic template. A question like "Establish the date and time of the collision" must become specific to this case.
 
-**RULE 2 - RELEVANCE FILTER**: Adapt each question to the actual incident type and circumstances described in INITIAL REVIEW. If a question references a scenario that does not apply to this case (e.g., third-party questions in a single-vehicle accident), either adapt it to fit or exclude it entirely.
+**RULE 2 - RELEVANCE FILTER**: Adapt each question to the actual incident type and circumstances described in INITIAL REVIEW. If a question references a scenario that does not apply to this case, adapt it to fit the case where possible. Only exclude if the question is entirely inapplicable and cannot be adapted.
 
 **RULE 3 - EXPAND BROAD INSTRUCTIONS**: When INVESTIGATION PROCESSES contains broad or general instructions, expand them into multiple specific questions using facts from INITIAL REVIEW. A single broad instruction may become several detailed questions.
 
-**RULE 4 - NO DUPLICATES**: The same question must not appear across multiple categories. If a topic is covered in one category, do not repeat it in another.
+**RULE 4 - NO DUPLICATES**: The same question must not appear across multiple categories. If the same question appears in multiple categories in INVESTIGATION PROCESSES, include it only once under the most relevant category — but do not drop the question entirely.
+
+**RULE 5 - COMPLETENESS**: Include ALL questions from INVESTIGATION PROCESSES by default. Only exclude a question when it references a scenario that clearly does not apply to this case and cannot be adapted. When in doubt, include the question — do not make subjective judgements about relevance.
 </CRITICAL_RULES>
 
 <TASK>
@@ -236,7 +238,7 @@ Steps:
     - "category" -> a category label. Do not jump back to a previous category later in the interview.
     - "question_text" -> the interview question.
 
-5. Review your plan and ensure that you have included all possible questions. Ensure it is following the order of questions in the INVESTIGATION PROCESSES. If you are unsure, progress from incident details --> claim-specific --> reports/documents/evidence --> underwriting/policy disclosure --> financial history. Any underwriting and/or financial history questions must be at the end.
+5. Review your plan and ensure that you have included all possible questions. Compare your output against INVESTIGATION PROCESSES and verify that every question is either included (contextualised) or has a clear reason for exclusion based on RULE 2. Ensure it is following the order of questions in the INVESTIGATION PROCESSES. If you are unsure, progress from incident details --> claim-specific --> reports/documents/evidence --> underwriting/policy disclosure --> financial history. Any underwriting and/or financial history questions must be at the end.
 </TASK>
 
 <OUTPUT>
