@@ -205,25 +205,38 @@ Output:
 """
 
 INTERVIEW_PLAN_DRAFT_PROMPT = """
+<CRITICAL_RULES>
+BEFORE drafting any questions, you MUST understand these rules. Violating these rules is a critical error.
+
+**RULE 1 - CONTEXTUALISE**: Every question from INVESTIGATION PROCESSES must be rewritten using case-specific details from INITIAL REVIEW (names, dates, locations, vehicle details). The output must never read like a generic template. A question like "Establish the date and time of the collision" must become specific to this case.
+
+**RULE 2 - RELEVANCE FILTER**: Adapt each question to the actual incident type and circumstances described in INITIAL REVIEW. If a question references a scenario that does not apply to this case (e.g., third-party questions in a single-vehicle accident), either adapt it to fit or exclude it entirely.
+
+**RULE 3 - EXPAND BROAD INSTRUCTIONS**: When INVESTIGATION PROCESSES contains broad or general instructions, expand them into multiple specific questions using facts from INITIAL REVIEW. A single broad instruction may become several detailed questions.
+
+**RULE 4 - NO DUPLICATES**: The same question must not appear across multiple categories. If a topic is covered in one category, do not repeat it in another.
+</CRITICAL_RULES>
+
 <TASK>
 **YOUR TASK**
 Draft an interview plan for the provided investigation type:
 
-1. Assess the INITIAL REVIEW and understand all the claim details mentioned like reason for claim, important dates, past history and all possible events and details mentioned in INITIAL REVIEW.
+Steps:
+1. Read INVESTIGATION PROCESSES first. Identify all question categories and questions within each category. These provide the structure and topics for your interview plan.
 
-2. List down interview categories and questions under each category using the **INVESTIGATION PROCESSES** and **INITIAL REVIEW**.
+2. Read INITIAL REVIEW to extract case-specific details (names, dates, locations, incident type, vehicle details, concerns, prior history).
 
-3. Guidelines for drafting the key concerns:
-    a. START with analyzing the INITIAL REVIEW to understand the sequence of events and their nature.
-    b. USE the information from the INVESTIGATION PROCESS to understand all the categories of questions and each question within that category.
-    c. Now analyze the questions from INVESTIGATION PROCESS which are relevant to ask as per the INITIAL REVIEW
-    d. Each object must include:
-        - "question_id" -> the number question.
-        - "category" -> a category label. Do not jump back to a previous category later in the interview.
-        - "question_text" -> the interview question.
-    e. Make sure there are no duplicate questions across categories
+3. For each question from INVESTIGATION PROCESSES:
+    a. Contextualise it with case-specific details from INITIAL REVIEW (apply RULE 1).
+    b. Check if it is relevant to this case's circumstances — if not, adapt or exclude (apply RULE 2).
+    c. If it is a broad instruction, expand into multiple specific questions using INITIAL REVIEW details (apply RULE 3).
 
-4. Review your plan and ensure that you have included all possible questions. Ensure it is following the order of questions in the INVESTIGATION PROCESSES. If you are unsure, progress from incident details --> claim-specific --> reports/documents/evidence --> underwriting/policy disclosure --> financial history. Any underwriting and/or financial history questions must be at the end.
+4. Each object must include:
+    - "question_id" -> the number of the question.
+    - "category" -> a category label. Do not jump back to a previous category later in the interview.
+    - "question_text" -> the interview question.
+
+5. Review your plan and ensure that you have included all possible questions. Ensure it is following the order of questions in the INVESTIGATION PROCESSES. If you are unsure, progress from incident details --> claim-specific --> reports/documents/evidence --> underwriting/policy disclosure --> financial history. Any underwriting and/or financial history questions must be at the end.
 </TASK>
 
 <OUTPUT>
@@ -233,12 +246,12 @@ Draft an interview plan for the provided investigation type:
 <CONTEXT>
 These are the relevant materials for your case:
 
-Here is the INVESTIGATION PROCESSES to guide you:
+Here is the INVESTIGATION PROCESSES — this provides the structure and question topics for your interview plan:
 <INVESTIGATION PROCESSES>
 {knowledge}
 </INVESTIGATION PROCESSES>
 
-The INITIAL REVIEW includes notes on the claim, policy and relevant details from searches conducted for the case being investigated. Use this information to inform your question set:
+The INITIAL REVIEW provides case-specific details for contextualisation. Use this to tailor every question to this specific case:
 <INITIAL REVIEW>
 {initial_review}
 </INITIAL REVIEW>
